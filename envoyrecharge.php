@@ -30,8 +30,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 
 define('GF_ENVOY_VERSION', '1.1');
-//define('GF_ENVOY_SERVER', 'https://api.envoyrecharge.com'); // Production
-define('GF_ENVOY_SERVER', 'https://apista.envoyrecharge.com'); // Staging
+define('GF_ENVOY_SERVER', 'https://api.envoyrecharge.com'); // Production
+// define('GF_ENVOY_SERVER', 'https://apista.envoyrecharge.com'); // Staging
 
 add_action('gform_loaded', array('GF_Envoy_Launch', 'load'), 5);
 

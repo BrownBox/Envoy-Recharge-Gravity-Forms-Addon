@@ -43,12 +43,12 @@ function envoy_field_field_input($input, $field, $value, $lead_id, $form_id) {
             $disabled = '';
 
         $amount = '';
-        $recurring = rgpost("gform_envoyrecharge_recurring") == "recurring" ? "checked='checked'" : "";
         $frequency = '';
+        $recurring = '';
         if (is_array($value)) {
             $amount = esc_attr(rgget($field["id"] . ".1", $value));
             $frequency = rgget($field["id"] . ".2", $value);
-            $recurring = $frequency == 'one-off' ? "" : "checked='checked'";
+            $recurring = rgget('input_'.$field['id'].'.5') == "recurring" ? "checked='checked'" : "";
         }
 
         $recur_label = empty($field['field_envoyrecharge_recur_label']) ? 'Yes, I want to make a recurring donation' : $field['field_envoyrecharge_recur_label'];
@@ -204,7 +204,7 @@ add_action("gform_field_css_class", "envoy_custom_field_class", 10, 3);
 
 function envoy_custom_field_class($classes, $field, $form) {
     if ($field["type"] == "envoyrecharge") {
-        $classes .= " gform_ech";
+        $classes .= ' gform_ech gfield_price gfield_price_'.$field['formId'].'_'.$field['id'].'_1 gfield_product_'.$field['formId'].'_'.$field['id'].'_1';
     }
 
     return $classes;

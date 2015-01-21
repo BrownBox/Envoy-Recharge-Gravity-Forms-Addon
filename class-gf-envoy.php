@@ -155,7 +155,7 @@ if (class_exists("GFForms")) {
                     "type" => "select",
                     "name" => "envoycurrency_" . self::$_instance->formid,
                     "class" => "envoy_general",
-                    "required" => true,
+                    "required" => false,
                     "choices" => $field_settings
             ));
 
@@ -278,7 +278,7 @@ if (class_exists("GFForms")) {
             foreach ($fields as $key => $field) {
                 if ($field["type"] != "creditcard") {
                     //if type is address or name, this is special handle it differently
-                    if ($field["type"] == 'address' || ($field["type"] == 'name' && $field["nameFormat"] != 'simple')) {
+                    if ($field["type"] == 'address' || ($field["type"] == 'name' && (!isset($field["nameFormat"]) || $field["nameFormat"] != 'simple'))) {
                         foreach ($field['inputs'] as $keyvalue => $inputvalue) {
                             $field_settings = array();
                             $field_settings['value'] = str_replace('.', '_', $inputvalue['id']);
@@ -480,8 +480,8 @@ if (class_exists("GFForms")) {
                 if (empty($amount_id))
                     array_push($errors, __('Error: EnvoyRecharge amount feed field is empty.', 'gravityformsenvoyrecharge'));
                 else {
-                    if ($amount_id != 'total' && $amount_id != 'bb_cart')
-                        $amount_idarray = array('amount', $amount_id); // check that amount field is not a total field.
+                    if ($amount_id != 'total' && $amount_id != 'bb_cart') // check that amount field is not a total field.
+                        $amount_idarray = array('amount', $amount_id);
                 }
 
                 $startdate_id = $envoyrechargemeta['envoystartdate_' . $form_id];
@@ -556,6 +556,12 @@ if (class_exists("GFForms")) {
                                 $$feed_field[0] = rgpost('input_' . $feed_field[1]);
                                 if ($field['type'] == 'product')
                                     $total += $this->clean_amount(rgpost('input_' . $field['id'])) / 100;
+                                elseif ($field['type'] == 'envoyrecharge') {
+                                    $total += $this->clean_amount(rgpost('input_' . $field['id'].'_1')) / 100;
+                                    $$feed_field[0] = rgpost('input_' . $feed_field[1].'_1');
+                                    if (rgpost('input_' . $field['id'].'_5') == 'recurring')
+                                        $frequency = rgpost('input_' . $field['id'].'_2');
+                                }
                             }
                         } else if ($field['type'] == 'creditcard') {
                             $ccnumber = rgpost('input_' . $field['id'] . '_1');
@@ -598,6 +604,8 @@ if (class_exists("GFForms")) {
                         foreach ($form["fields"] as $key => $field) {
                             if ($field['type'] == 'product') {
                                 $total += $this->clean_amount(rgpost('input_' . $field['id'])) / 100;
+                            } elseif ($field['type'] == 'envoyrecharge') {
+                                $total += $this->clean_amount(rgpost('input_' . $field['id'].'.1')) / 100;
                             }
                         }
                         $amount = $total;
@@ -658,7 +666,11 @@ if (class_exists("GFForms")) {
                                 else {
                                     $error_array = $result->_errors;
                                     foreach ($error_array as $key => $error) {
-                                        $error_message .= '<li>' . __($error, 'gravityformsenvoyrecharge') . '</li>' . "\n";
+                                        if (is_object($error)) {
+                                            $error_object = get_object_vars($error);
+                                            $error_message .= '<li>' . __($error_object['description'], 'gravityformsenvoyrecharge') . '</li>' . "\n";
+                                        } else
+                                            $error_message .= '<li>' . __($error, 'gravityformsenvoyrecharge') . '</li>' . "\n";
                                     }
                                 }
                             }

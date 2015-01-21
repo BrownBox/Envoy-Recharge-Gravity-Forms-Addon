@@ -29,30 +29,22 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
 
 
-define('GF_ENVOY_VERSION', '1.0');
-define( 'GF_ENVOY_SERVER', 'https://api.envoyrecharge.com' );
+define('GF_ENVOY_VERSION', '1.1');
+define('GF_ENVOY_SERVER', 'https://apista.envoyrecharge.com');
 
-add_action('gform_loaded', array(
-    'GF_Envoy_Launch',
-    'load'
-), 5);
+add_action('gform_loaded', array('GF_Envoy_Launch', 'load'), 5);
 
 class GF_Envoy_Launch
 {
-
     public static function load()
     {
-
         if (!method_exists('GFForms', 'include_payment_addon_framework')) {
             return;
         }
 
         require_once('class-gf-envoy.php');
-        require_once('envoy-interval-settings.php');
-        require_once('envoy-frequency-settings.php');
+        require_once('envoy-field-settings.php');
 
         GFAddOn::register('GFEnvoy');
     }
-
 }
-

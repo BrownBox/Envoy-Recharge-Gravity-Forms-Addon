@@ -569,15 +569,6 @@ if (class_exists("GFForms")) {
                             $ccdate_year = $ccdate_array[1];
                             $ccv = rgpost('input_' . $field['id'] . '_3');
                             $ccname = rgpost('input_' . $field['id'] . '_5');
-
-                            if ($ccnumber == '' || $ccdate_month == '' || $ccdate_year == '' || $ccv == '' || $ccname == '') {
-                                $validation_result["is_valid"] = false;
-                                $field["failed_validation"] = true;
-                                $field["validation_message"] = __('Error: Credit Card information not entered correctly.', 'gravityformsenvoyrecharge');
-                                $validation_result["form"] = $form;
-
-                                break;
-                            }
                         } else if ($field["type"] == 'interval') {
                             $interval = rgpost('input_' . $field['id']);
                         } else if ($field["type"] == 'frequency') {

@@ -38,8 +38,7 @@ if (class_exists("GFForms")) {
             ));
             // gateways returned then add them to option list
 
-
-            if (sizeof($gatewaysObject->gateways) > 0) {
+            if (is_object($gatewaysObject) && sizeof($gatewaysObject->gateways) > 0) {
                 foreach ($gatewaysObject->gateways as $key => $gateway) {
                     array_push($this->gateways, array(
                             "label" => __($gateway->name, 'gravityformsenvoyrecharge'),
@@ -560,7 +559,7 @@ if (class_exists("GFForms")) {
                                     $total += $this->clean_amount(rgpost('input_' . $field['id'].'_1')) / 100;
                                     $$feed_field[0] = rgpost('input_' . $feed_field[1].'_1');
                                     if (rgpost('input_' . $field['id'].'_5') == 'recurring')
-                                        $frequency = rgpost('input_' . $field['id'].'_2');
+                                        $interval = rgpost('input_' . $field['id'].'_2');
                                 }
                             }
                         } else if ($field['type'] == 'creditcard') {

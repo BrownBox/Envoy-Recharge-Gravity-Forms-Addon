@@ -567,6 +567,8 @@ if (class_exists("GFForms")) {
                             $ccdate_array = rgpost('input_' . $field['id'] . '_2');
                             $ccdate_month = $ccdate_array[0];
                             $ccdate_year = $ccdate_array[1];
+                            if (strlen($ccdate_year) > 2)
+                                $ccdate_year = substr($ccdate_year, -2); // Only want last 2 digits
                             $ccv = rgpost('input_' . $field['id'] . '_3');
                             $ccname = rgpost('input_' . $field['id'] . '_5');
                         } else if ($field["type"] == 'interval') {

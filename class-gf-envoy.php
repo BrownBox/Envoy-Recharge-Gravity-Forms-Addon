@@ -546,6 +546,7 @@ if (class_exists("GFForms")) {
                 if (!empty($reference_idarray))
                     array_push($fields_in_feed, $reference_idarray);
 
+                $is_creditcard = false;
                 foreach ($fields_in_feed as $key => $feed_field) {
                     foreach ($form["fields"] as $fieldkey => $field) {
                         if ($field['type'] != 'creditcard' && $field['type'] != 'interval' && $field['type'] != 'frequency') {
@@ -562,7 +563,7 @@ if (class_exists("GFForms")) {
                                         $interval = rgpost('input_' . $field['id'].'_2');
                                 }
                             }
-                        } else if ($field['type'] == 'creditcard') {
+                        } else if ($field['type'] == 'creditcard' && !RGFormsModel::is_field_hidden($form, $field, array())) {
                             $ccnumber = rgpost('input_' . $field['id'] . '_1');
                             $ccdate_array = rgpost('input_' . $field['id'] . '_2');
                             $ccdate_month = $ccdate_array[0];
@@ -571,6 +572,7 @@ if (class_exists("GFForms")) {
                                 $ccdate_year = substr($ccdate_year, -2); // Only want last 2 digits
                             $ccv = rgpost('input_' . $field['id'] . '_3');
                             $ccname = rgpost('input_' . $field['id'] . '_5');
+                            $is_creditcard = true;
                         } else if ($field["type"] == 'interval') {
                             $interval = rgpost('input_' . $field['id']);
                         } else if ($field["type"] == 'frequency') {
@@ -579,8 +581,8 @@ if (class_exists("GFForms")) {
                     }
                 }
 
-                //if validation is valid the process
-                if ($validation_result["is_valid"]) {
+                // if validation is valid then process
+                if ($validation_result["is_valid"] && $is_creditcard) {
                     $transactions = array();
                     $interval = (isset($interval) && $interval != '' && $interval != null) ? $interval : 'one-off';
                     $frequency = (isset($frequency) && $frequency != '' && $frequency != null) ? $frequency : 1;

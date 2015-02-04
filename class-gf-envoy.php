@@ -609,7 +609,7 @@ if (class_exists("GFForms")) {
                             foreach ($_SESSION[BB_CART_SESSION_ITEM] as $cart_item) {
                                 if (!isset($transactions[$cart_item['frequency']]))
                                     $transactions[$cart_item['frequency']] = 0;
-                                $transactions[$cart_item['frequency']] += $cart_item['price'];
+                                $transactions[$cart_item['frequency']] += $cart_item['price']/100;
                             }
                         }
                     }

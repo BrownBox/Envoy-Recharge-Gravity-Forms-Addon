@@ -546,6 +546,12 @@ if (class_exists("GFForms")) {
                 if (!empty($reference_idarray))
                     array_push($fields_in_feed, $reference_idarray);
 
+                // If not last page of form (for multi-page forms), don't go any further
+                $current_page = rgpost( 'gform_source_page_number_' . $form['id'] ) ? rgpost( 'gform_source_page_number_' . $form['id'] ) : 1;
+                $total_pages = isset($form['pagination']['pages']) ? count($form['pagination']['pages']) : 1;
+                if ($current_page < $total_pages)
+                    return $validation_result;
+
                 $is_creditcard = false;
                 foreach ($fields_in_feed as $key => $feed_field) {
                     foreach ($form["fields"] as $fieldkey => $field) {
@@ -658,11 +664,10 @@ if (class_exists("GFForms")) {
                                 if (is_string($result))
                                     $error_message .= '<li>' . __($result, 'gravityformsenvoyrecharge') . '</li>' . "\n";
                                 else {
-                                    $error_array = $result->_errors;
+                                    $error_array = (array)$result->_errors;
                                     foreach ($error_array as $key => $error) {
                                         if (is_object($error)) {
-                                            $error_object = get_object_vars($error);
-                                            $error_message .= '<li>' . __($error_object['description'], 'gravityformsenvoyrecharge') . '</li>' . "\n";
+                                            $error_message .= '<li>' . __($error->message, 'gravityformsenvoyrecharge') . '</li>' . "\n";
                                         } else
                                             $error_message .= '<li>' . __($error, 'gravityformsenvoyrecharge') . '</li>' . "\n";
                                     }

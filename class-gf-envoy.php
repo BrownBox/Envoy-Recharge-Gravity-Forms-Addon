@@ -638,7 +638,6 @@ if (class_exists("GFForms")) {
                             }
                         }
                     }
-                    var_dump($amount, $amount_id);exit;
 
                     foreach ($transactions as $the_interval => $amount) {
                         $data = array();

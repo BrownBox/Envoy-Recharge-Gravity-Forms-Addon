@@ -3,7 +3,7 @@
 Plugin Name: Gravity Forms EnvoyRecharge Standard Add-On
 Plugin URI: http://www.gravityforms.com
 Description: Integrates Gravity Forms with EnvoyRecharge Payments Standard, enabling end users to purchase goods and services through Gravity Forms.
-Version: 1.0
+Version: 1.2.1
 Author: Brownbox
 Author URI: http://www.brownbox.net.au
 Text Domain: gravityformsenvoyrecharge
@@ -11,7 +11,7 @@ Domain Path: /languages
 
 ------------------------------------------------------------------------
 Copyright 2015 EnvoyRecharge
-Last updated: January 15, 2015
+Last updated: May 7, 2015
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
 
 
-define('GF_ENVOY_VERSION', '1.1.2');
+define('GF_ENVOY_VERSION', '1.2.1');
 define('GF_ENVOY_SERVER', 'https://api.envoyrecharge.com'); // Production
 // define('GF_ENVOY_SERVER', 'https://apista.envoyrecharge.com'); // Staging
 

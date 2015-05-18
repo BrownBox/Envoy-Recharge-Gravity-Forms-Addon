@@ -38,8 +38,8 @@ if (class_exists("GFForms")) {
             ));
             // gateways returned then add them to option list
 
-            if (is_object($gatewaysObject) && sizeof($gatewaysObject->gateways) > 0) {
-                foreach ($gatewaysObject->gateways as $key => $gateway) {
+            if (is_object($gatewaysObject) && sizeof($gatewaysObject->resource->data) > 0) {
+                foreach ($gatewaysObject->resource->data as $key => $gateway) {
                     array_push($this->gateways, array(
                             "label" => __($gateway->name, 'gravityformsenvoyrecharge'),
                             "value" => $gateway->_id
@@ -560,9 +560,16 @@ if (class_exists("GFForms")) {
                             $feed_array = explode('_', $feed_field[1]);
                             if ($field['id'] == $feed_array[0]) {
                                 $$feed_field[0] = rgpost('input_' . $feed_field[1]);
-                                if ($field['type'] == 'product')
-                                    $total += $this->clean_amount(rgpost('input_' . $field['id'])) / 100;
-                                elseif ($field['type'] == 'envoyrecharge') {
+                                if ($field['type'] == 'product') {
+                                    switch ($field['inputType']) {
+                                        case 'singleproduct':
+                                            $total += $this->clean_amount(rgpost('input_' . $field['id'].'_2')) / 100;
+                                            break;
+                                        default:
+                                            $total += $this->clean_amount(rgpost('input_' . $field['id'])) / 100;
+                                            break;
+                                    }
+                                } elseif ($field['type'] == 'envoyrecharge') {
                                     $total += $this->clean_amount(rgpost('input_' . $field['id'].'_1')) / 100;
                                     $$feed_field[0] = rgpost('input_' . $feed_field[1].'_1');
                                     if (rgpost('input_' . $field['id'].'_5') == 'recurring')
@@ -573,6 +580,8 @@ if (class_exists("GFForms")) {
                             $ccnumber = rgpost('input_' . $field['id'] . '_1');
                             $ccdate_array = rgpost('input_' . $field['id'] . '_2');
                             $ccdate_month = $ccdate_array[0];
+                            if (strlen($ccdate_month) < 2)
+                                $ccdate_month = '0'.$ccdate_month;
                             $ccdate_year = $ccdate_array[1];
                             if (strlen($ccdate_year) > 2)
                                 $ccdate_year = substr($ccdate_year, -2); // Only want last 2 digits
@@ -596,19 +605,29 @@ if (class_exists("GFForms")) {
                     //create array of parameter to be sent to EnvoyRecharge
                     //clean amount first by converting to cents then to $
 
-                    if (isset($amount)) {
+                    if (!empty($amount)) {
                         $amount = $this->clean_amount($amount);
-                        $amount = $amount / 100;
+                        $amount = $amount/100;
+                        $transactions[$interval] = $amount;
+                    } elseif (!empty($total)) {
+                        $amount = $total;
                         $transactions[$interval] = $amount;
                     } elseif ($amount_id == 'total') { // total amount to be used
+                        $amount = 0;
                         foreach ($form["fields"] as $key => $field) {
                             if ($field['type'] == 'product') {
-                                $total += $this->clean_amount(rgpost('input_' . $field['id'])) / 100;
+                                switch ($field['inputType']) {
+                                	case 'singleproduct':
+                                	    $amount += $this->clean_amount(rgpost('input_' . $field['id'].'_2')) / 100;
+                                	    break;
+                                	default:
+                                	    $amount += $this->clean_amount(rgpost('input_' . $field['id'])) / 100;
+                                	    break;
+                                }
                             } elseif ($field['type'] == 'envoyrecharge') {
-                                $total += $this->clean_amount(rgpost('input_' . $field['id'].'.1')) / 100;
+                                $amount += $this->clean_amount(rgpost('input_' . $field['id'].'.1')) / 100;
                             }
                         }
-                        $amount = $total;
                         $transactions[$interval] = $amount;
                     } elseif ($amount_id == 'bb_cart') {
                         if (!empty($_SESSION[BB_CART_SESSION_ITEM])) {
@@ -619,6 +638,7 @@ if (class_exists("GFForms")) {
                             }
                         }
                     }
+                    var_dump($amount, $amount_id);exit;
 
                     foreach ($transactions as $the_interval => $amount) {
                         $data = array();
@@ -653,7 +673,7 @@ if (class_exists("GFForms")) {
                         $result = $this->processToEnvoy($data);
                         $result = json_decode($result);
 
-                        if (!isset($result->subscription->status) && !isset($result->transaction->status)) {
+                        if (!is_object($result) || $result->status > 201) {
                             $validation_result["is_valid"] = false;
                             $error_message = '<ul>' . "\n";
                             $error_message .= '<li class="gfield gfield_contains_required gfield_error">' . "\n";
@@ -663,15 +683,10 @@ if (class_exists("GFForms")) {
                             } else {
                                 if (is_string($result))
                                     $error_message .= '<li>' . __($result, 'gravityformsenvoyrecharge') . '</li>' . "\n";
-                                else {
-                                    $error_array = (array)$result->_errors;
-                                    foreach ($error_array as $key => $error) {
-                                        if (is_object($error)) {
-                                            $error_message .= '<li>' . __($error->message, 'gravityformsenvoyrecharge') . '</li>' . "\n";
-                                        } else
-                                            $error_message .= '<li>' . __($error, 'gravityformsenvoyrecharge') . '</li>' . "\n";
-                                    }
-                                }
+                                elseif (!empty($result->error->message))
+                                    $error_message .= '<li>' . __($result->error->message, 'gravityformsenvoyrecharge') . '</li>' . "\n";
+                                else
+                                    $error_message .= '<li>' . __('An unknown error occured. Please try again later.', 'gravityformsenvoyrecharge') . '</li>' . "\n";
                             }
                             $error_message .= '</ul>' . "\n";
                             $error_message .= '</li>' . "\n";
@@ -694,12 +709,12 @@ if (class_exists("GFForms")) {
         }
 
         //send subscription data to EnvoyRecharge
-        protected function processToEnvoy($data) {
+        public function processToEnvoy($data) {
             $data_string = json_encode($data);
             $settings = $this->get_plugin_settings();
             $envoyrecharge_key = $settings['envoyapikey'];
             $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, GF_ENVOY_SERVER . '/v1/subscriptions');
+            curl_setopt($ch, CURLOPT_URL, GF_ENVOY_SERVER . '/v0/subscriptions');
             curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
             curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
